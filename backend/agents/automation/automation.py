@@ -82,5 +82,5 @@ def open_app(app_name):
         print(f"Could not find application: {app_name}")
         return False
 
-open_app("telegrm")
+# open_app("telegrm")
 # get_desktop_apps()
