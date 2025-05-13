@@ -2,7 +2,7 @@ import os
 from glob import glob
 import subprocess
 from rapidfuzz.process import extractOne
-from rapidfuzz.fuzz  import ratio
+from rapidfuzz.fuzz import ratio
 
 
 def get_desktop_apps():
@@ -29,8 +29,6 @@ def get_desktop_apps():
         found_files = glob(expanded_path)
         if found_files:
             print(f"Found files in {expanded_path}:")
-            for file in found_files:
-                print(f"  - {file}")
         desktop_files.extend(found_files)
     
     apps = {}
@@ -46,27 +44,43 @@ def get_desktop_apps():
                     exec_cmd = line[5:].strip().split(" ")[0]
             if name and exec_cmd:
                 apps[name] = exec_cmd
-                print(f"Added application: {name} -> {exec_cmd}")
         except (IOError, PermissionError) as e:
             print(f"Warning: Could not read {file}: {e}")
             continue
             
-    print("\nAvailable applications:")
-    for app_name in sorted(apps.keys()):
-        print(f"- {app_name}")
     return apps
 
 def open_app(app_name):
     apps = get_desktop_apps()
     app = extractOne(app_name, apps.keys(), scorer=ratio, score_cutoff=70)
     if app:
-        matched_name, score, _ = app  # Unpack all three values, ignore the index
+        matched_name, score, _ = app
         print(f"Matched '{app_name}' to '{matched_name}' with score {score}")
-        subprocess.Popen([apps[matched_name]])
+        
+        # Set up environment variables to reduce warnings
+        env = os.environ.copy()
+        env.update({
+            'GTK_MODULES': '',  # Disable GTK modules to reduce warnings
+            'QT_LOGGING_RULES': '*.debug=false',  # Reduce Qt debug output
+            'QT_ACCESSIBILITY': '0',  # Disable accessibility to reduce warnings
+        })
+        
+        try:
+            # Use subprocess.Popen with environment variables and redirect stderr
+            process = subprocess.Popen(
+                [apps[matched_name]],
+                env=env,
+                stderr=subprocess.DEVNULL,  # Suppress error messages
+                stdout=subprocess.DEVNULL,  # Suppress output
+                start_new_session=True  # Run in new session to prevent terminal from being affected
+            )
+            return True
+        except Exception as e:
+            print(f"Error launching application: {e}")
+            return False
     else:
         print(f"Could not find application: {app_name}")
-        print("Try one of the available applications listed above.")
-    
-open_app("spotify")
+        return False
 
+open_app("telegrm")
 # get_desktop_apps()
