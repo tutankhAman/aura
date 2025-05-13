@@ -9,3 +9,4 @@ apscheduler==3.10.4
 pyttsx3==2.90
 openai-whisper==20231117
 pyautogui==0.9.54 
+rapidfuzz==3.13.0

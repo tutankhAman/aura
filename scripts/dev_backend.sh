@@ -15,7 +15,7 @@ print_yellow() {
 
 # Check if virtual environment exists
 if [ ! -d "backend/venv" ]; then
-    print_red "Virtual environment not found. Please run setup_backend.sh first"
+    print_red "Virtual environment not found. Please run install.sh first"
     exit 1
 fi
 
@@ -25,8 +25,14 @@ cd backend
 
 # Activate virtual environment and show activation
 print_yellow "Activating virtual environment..."
+nano venv/bin/activate
+# Strip out all Cursor-related garbage from PATH
+export PATH=$(echo "$PATH" | tr ':' '\n' | grep -v 'Cursor' | grep -v '/tmp/.mount_Cursor' | tr '\n' ':' | sed 's/:$//')
+hash -r
 source venv/bin/activate
 print_green "Virtual environment activated: $(pwd)/venv"
+alias python=./venv/bin/python
+alias pip=./venv/bin/pip
 
 # Start the server
 print_yellow "Server running at http://localhost:8000"

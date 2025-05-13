@@ -1,39 +1,50 @@
 #!/bin/bash
 
+set -e  # Exit immediately on error
+
+# Go to project root (in case user runs it from subfolder)
+cd "$(dirname "$0")/.."
+
+# Define venv path
+VENV_PATH="backend/venv"
+
 # Check if Python 3.12 is installed
 if ! command -v python3.12 &> /dev/null; then
-    echo "Python 3.12 not found. Please install Python 3.12 from https://www.python.org/downloads/release/python-3122/"
+    echo "❌ Python 3.12 not found."
+    echo "👉 Please install Python 3.12 from: https://www.python.org/downloads/release/python-3122/"
     exit 1
 fi
 
-# Print Python version
-python3.12 --version
+echo "✅ Python version: $(python3.12 --version)"
 
-# Create virtual environment if it doesn't exist
-if [ ! -d "backend/venv" ]; then
-    echo "Creating virtual environment with Python 3.12..."
-    python3.12 -m venv backend/venv
+# Create virtualenv if it doesn't exist
+if [ ! -d "$VENV_PATH" ]; then
+    echo "📦 Creating virtual environment..."
+    python3.12 -m venv "$VENV_PATH"
+else
+    echo "✅ Virtual environment already exists."
 fi
 
-# Activate virtual environment and install dependencies
-echo "Installing Python dependencies..."
-source backend/venv/bin/activate
+# Activate venv
+source "$VENV_PATH/bin/activate"
 
-# Upgrade pip first
+# Verify we're using the right Python
+echo "🐍 Using Python from: $(which python)"
+echo "📦 Installing backend dependencies..."
+
+# Upgrade pip
 python -m pip install --upgrade pip
 
-# Install dependencies with error handling
-echo "Installing dependencies..."
+# Install Python deps
 if ! pip install -r requirements.txt; then
-    echo "Error installing dependencies. Trying alternative method..."
+    echo "⚠️ pip install failed. Trying with --no-cache-dir..."
     pip install --no-cache-dir -r requirements.txt
 fi
 
-# Install frontend dependencies
-echo "Installing frontend dependencies..."
+# Install frontend deps
+echo "🌐 Installing frontend dependencies..."
+cd frontend
 npm install
+cd ..
 
-echo "Installation complete!"
-
-# Uncomment the following line to automatically start the development environment
-# ./scripts/start_dev.sh
+echo "🎉 Setup complete!"
